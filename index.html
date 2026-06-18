@@ -4,538 +4,209 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RéApproQR</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-:root{--bg:#F0F2F5;--surface:#fff;--border:#E2E5EA;--text:#0F1117;--muted:#6B7280;--accent:#0052CC;--accent-bg:#EBF2FF;--green:#15803D;--green-bg:#F0FDF4;--green-border:#86EFAC;--orange:#C2410C;--orange-bg:#FFF7ED;--tag-bg:#F3F4F6;--shadow:0 1px 3px rgba(0,0,0,.08)}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.5}
-nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 1rem;display:flex;align-items:stretch;position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
-.nav-logo{font-weight:700;font-size:.95rem;color:var(--accent);padding:1rem .5rem 1rem 0;margin-right:.5rem;display:flex;align-items:center;gap:.4rem;white-space:nowrap}
-.nav-logo::before{content:'';width:8px;height:8px;background:var(--accent);border-radius:50%;display:inline-block}
-.nav-btn{padding:0 1rem;font-family:'Inter',sans-serif;font-size:.82rem;font-weight:500;border:none;background:transparent;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
-.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
-.nav-btn:hover:not(.active){color:var(--text)}
-.page{display:none;padding:1.5rem 1rem;max-width:680px;margin:0 auto}
+/* === TON DESIGN CONSERVE === */
+body{font-family:Arial;background:#f2f4f8;margin:0}
+nav{display:flex;background:#111;color:#fff}
+nav button{flex:1;padding:12px;border:none;background:none;color:#aaa}
+nav .active{color:#fff;background:#007bff}
+.page{display:none;padding:15px}
 .page.active{display:block}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:1rem}
-.card-head{padding:.85rem 1.1rem;border-bottom:1px solid var(--border);font-weight:600;font-size:.88rem;display:flex;align-items:center;gap:.5rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.card-body{padding:1.1rem}
-.field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.9rem}
-.field label{font-size:.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
-.field input,.field textarea{font-family:'Inter',sans-serif;font-size:.95rem;padding:.6rem .75rem;border:1.5px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);width:100%;outline:none;transition:border-color .15s}
-.field input:focus,.field textarea:focus{border-color:var(--accent)}
-.field textarea{resize:none;height:72px}
-.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.7rem}
-.conso-row{display:grid;grid-template-columns:1fr 70px 32px;gap:.5rem;align-items:center;margin-bottom:.5rem}
-.conso-row input{font-family:'Inter',sans-serif;font-size:.9rem;padding:.5rem .65rem;border:1.5px solid var(--border);border-radius:6px;background:var(--surface);outline:none;width:100%}
-.conso-row input:focus{border-color:var(--accent)}
-.btn-icon{width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;background:var(--tag-bg);color:var(--muted);transition:background .15s;flex-shrink:0}
-.btn-icon:hover{background:#FFE4E6;color:var(--orange)}
-.btn-add-line{font-family:'Inter',sans-serif;font-size:.83rem;font-weight:500;color:var(--accent);background:var(--accent-bg);border:1.5px dashed #93C5FD;border-radius:7px;padding:.5rem;cursor:pointer;text-align:center;width:100%;margin-top:.3rem;transition:background .15s}
-.btn-add-line:hover{background:#DBEAFE}
-.photo-drop{border:2px dashed var(--border);border-radius:8px;padding:1.5rem;text-align:center;cursor:pointer;position:relative;transition:border-color .2s,background .2s;background:#FAFAFA}
-.photo-drop:hover{border-color:var(--accent);background:var(--accent-bg)}
-.photo-drop.filled{border-style:solid;border-color:var(--green);background:var(--green-bg)}
-.photo-drop input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-.photo-drop .hint{font-size:.85rem;color:var(--muted)}
-.photo-drop .hint strong{display:block;font-size:1.6rem;margin-bottom:.3rem}
-.photo-drop img{max-height:160px;border-radius:6px;object-fit:contain;display:none;margin:0 auto}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;padding:.7rem 1.4rem;font-family:'Inter',sans-serif;font-size:.9rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .15s;border:none;white-space:nowrap}
-.btn-primary{background:var(--accent);color:#fff}
-.btn-primary:hover{background:#0041A8}
-.btn-secondary{background:var(--surface);color:var(--text);border:1.5px solid var(--border)}
-.btn-secondary:hover{background:var(--bg)}
-.btn-danger{background:#FEF2F2;color:var(--orange);border:1.5px solid #FECACA}
-.btn-danger:hover{background:#FECACA}
-.btn:active{transform:scale(.97)}
-.btn-full{width:100%}
-.btn-row{display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap}
-.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:#111;color:#fff;padding:.65rem 1.2rem;border-radius:30px;font-size:.85rem;font-weight:500;z-index:999;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.qr-block{display:none;margin-top:1rem}
-.qr-block.visible{display:block}
-.qr-inner{display:flex;gap:1.2rem;align-items:center;flex-wrap:wrap}
-#qrcanvas{background:#fff;border:1px solid var(--border);border-radius:8px;flex-shrink:0}
-.qr-meta{flex:1;min-width:180px}
-.qr-meta .point-name{font-size:1.05rem;font-weight:700;margin-bottom:.5rem}
-.mono-id{font-family:'JetBrains Mono',monospace;font-size:.75rem;background:var(--accent-bg);color:var(--accent);padding:.2rem .6rem;border-radius:5px;display:inline-block;margin-bottom:.6rem}
-.section-title{font-size:1.1rem;font-weight:700;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
-.count-pill{background:var(--text);color:#fff;font-size:.72rem;font-weight:700;padding:.1rem .55rem;border-radius:20px}
-.point-item{display:flex;align-items:center;gap:.8rem;padding:.75rem 1rem;border-bottom:1px solid var(--border)}
-.point-item:last-child{border-bottom:none}
-.point-dot{width:36px;height:36px;border-radius:8px;background:var(--accent-bg);color:var(--accent);font-size:1.1rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.point-info{flex:1;min-width:0}
-.point-info .name{font-weight:600;font-size:.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.point-info .sub{font-size:.78rem;color:var(--muted);margin-top:.1rem}
-.point-actions{display:flex;gap:.4rem;flex-shrink:0}
-.fiche-point-name{font-size:1.3rem;font-weight:700;margin-bottom:.3rem}
-.fiche-point-sub{font-size:.85rem;color:var(--muted);margin-bottom:1.2rem}
-.last-passage{background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:.7rem 1rem;font-size:.83rem;color:var(--green);font-weight:500;margin-bottom:1rem;display:none}
-.last-passage.visible{display:block}
-.passage-card{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:.7rem;background:var(--surface)}
-.passage-head{padding:.65rem 1rem;background:var(--tag-bg);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer;user-select:none}
-.passage-head .ts{font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--muted)}
-.passage-head .agent{font-weight:600;font-size:.85rem}
-.passage-chevron{color:var(--muted);transition:transform .2s;font-size:.85rem}
-.passage-card.open .passage-chevron{transform:rotate(180deg)}
-.passage-body{display:none;padding:.9rem 1rem}
-.passage-card.open .passage-body{display:block}
-.items-delivered{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.8rem}
-.item-tag{background:var(--accent-bg);color:var(--accent);font-size:.8rem;font-weight:500;padding:.2rem .6rem;border-radius:20px}
-.passage-photo{width:100%;max-height:220px;object-fit:cover;border-radius:6px;border:1px solid var(--border);margin-top:.5rem}
-.passage-note{font-size:.85rem;color:var(--muted);font-style:italic;margin-top:.5rem}
-.history-empty{padding:2rem;text-align:center;color:var(--muted);font-size:.9rem}
+.card{background:#fff;padding:15px;border-radius:8px;margin-bottom:10px}
+button{padding:10px;border:none;background:#007bff;color:#fff;border-radius:6px}
+input{padding:8px;width:100%;margin:5px 0}
+#qrcanvas{margin-top:10px}
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="nav-logo">RéApproQR</div>
-  <button class="nav-btn active" id="btn-admin" onclick="switchPage('admin')">⚙ Admin</button>
-  <button class="nav-btn" id="btn-agent" onclick="switchPage('agent')">📱 Agent</button>
-  <button class="nav-btn" id="btn-history" onclick="switchPage('history')">📋 Historique</button>
+<button id="btn-admin" class="active" onclick="showPage('admin')">Admin</button>
+<button id="btn-agent" onclick="showPage('agent')">Agent</button>
+<button id="btn-history" onclick="showPage('history')">Historique</button>
 </nav>
 
 <!-- ADMIN -->
-<div id="page-admin" class="page active">
-  <div class="section-title">Points de collecte</div>
-  <div class="card">
-    <div class="card-head">➕ Nouveau point</div>
-    <div class="card-body">
-      <div class="field"><label>Nom du point *</label><input type="text" id="a-name" placeholder="ex: Salle de pause 2ème étage"></div>
-      <div class="grid2">
-        <div class="field"><label>Bâtiment / Site</label><input type="text" id="a-site" placeholder="ex: Bâtiment A"></div>
-        <div class="field"><label>Étage / Local</label><input type="text" id="a-floor" placeholder="ex: 2ème étage"></div>
-      </div>
-      <div class="field"><label>Consommables habituels</label><input type="text" id="a-items" placeholder="ex: Café, Sucre, Gobelets"></div>
-      <button class="btn btn-primary" onclick="createPoint()">Créer et générer QR</button>
-      <div class="qr-block" id="qrBlock">
-        <hr style="border:none;border-top:1px solid var(--border);margin:1.2rem 0">
-        <div class="qr-inner">
-          <canvas id="qrcanvas"></canvas>
-          <div class="qr-meta">
-            <div class="point-name" id="qr-point-name"></div>
-            <div class="mono-id" id="qr-point-id"></div>
-            <p style="font-size:.8rem;color:var(--muted);margin-bottom:.8rem">Scannez ce QR pour ouvrir directement la fiche agent.</p>
-            <div class="btn-row" style="margin-top:.5rem">
-              <button class="btn btn-secondary" onclick="downloadQR()">↓ Télécharger</button>
-              <button class="btn btn-secondary" onclick="printQR()">⎙ Imprimer</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-head">📍 Points enregistrés</div>
-    <div id="adminPointList"></div>
-  </div>
+<div id="admin" class="page active">
+<div class="card">
+<h3>Créer un point</h3>
+<input id="name" placeholder="Nom du point">
+<input id="site" placeholder="Site">
+<input id="floor" placeholder="Étage">
+<input id="items" placeholder="Consommables">
+<button onclick="createPoint()">Créer + QR</button>
+<canvas id="qrcanvas"></canvas>
+</div>
+
+<div id="list"></div>
 </div>
 
 <!-- AGENT -->
-<div id="page-agent" class="page">
-  <div id="agent-select-view">
-    <div class="section-title">Sélectionner un point</div>
-    <p style="font-size:.85rem;color:var(--muted);margin-bottom:1rem">En conditions réelles, scannez le QR code pour ouvrir directement la fiche.</p>
-    <div class="card"><div id="agentPointList"></div></div>
-  </div>
-  <div id="agent-form-view" style="display:none">
-    <div style="margin-bottom:1rem">
-      <button class="btn btn-secondary" onclick="backToSelect()" style="font-size:.82rem;padding:.45rem .9rem">← Retour</button>
-    </div>
-    <div class="fiche-point-name" id="form-point-name"></div>
-    <div class="fiche-point-sub" id="form-point-sub"></div>
-    <div class="last-passage" id="lastPassageBanner"></div>
-    <div class="card">
-      <div class="card-head">📦 Ce que je livre</div>
-      <div class="card-body">
-        <div id="consoList"></div>
-        <button class="btn-add-line" onclick="addConsoLine()">+ Ajouter un article</button>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head">📷 Photo du stock livré</div>
-      <div class="card-body">
-        <div class="photo-drop" id="agentPhotoZone">
-          <input type="file" accept="image/*" capture="environment" id="agentPhotoInput" onchange="loadAgentPhoto(event)">
-          <div class="hint" id="agentPhotoHint"><strong>📷</strong>Prendre une photo</div>
-          <img id="agentPhotoPreview" alt="">
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head">📝 Passage</div>
-      <div class="card-body">
-        <div class="field"><label>Votre nom *</label><input type="text" id="agent-name" placeholder="ex: Marie Martin"></div>
-        <div class="field"><label>Remarques</label><textarea id="agent-note" placeholder="État du point, anomalie…"></textarea></div>
-      </div>
-    </div>
-    <button class="btn btn-primary btn-full" style="margin-top:.5rem;padding:.85rem" onclick="submitPassage()">✓ Valider le réapprovisionnement</button>
-  </div>
+<div id="agent" class="page">
+<div id="agentView"></div>
 </div>
 
 <!-- HISTORIQUE -->
-<div id="page-history" class="page">
-  <div class="section-title">Historique <span class="count-pill" id="histCount">0</span></div>
-  <div class="card" style="margin-bottom:1rem">
-    <div class="card-body" style="padding:.8rem 1rem;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center">
-      <select id="filterPoint" onchange="renderHistory()" style="font-family:Inter,sans-serif;font-size:.85rem;padding:.45rem .7rem;border:1.5px solid var(--border);border-radius:6px;background:#fff;flex:1;min-width:140px"></select>
-      <button class="btn btn-danger" onclick="clearHistory()" style="font-size:.82rem;padding:.45rem .9rem">🗑 Vider</button>
-    </div>
-  </div>
-  <div id="historyList"></div>
+<div id="history" class="page">
+<div id="historyList"></div>
 </div>
 
-<div class="toast" id="toast"></div>
-
 <script>
-// ── Storage ───────────────────────────────────────────────────────────────────
-const getPoints   = () => { try { return JSON.parse(localStorage.getItem('raq_points'))   || {}; } catch { return {}; } };
-const getPassages = () => { try { return JSON.parse(localStorage.getItem('raq_passages')) || []; } catch { return []; } };
-const savePoints   = d => localStorage.setItem('raq_points',   JSON.stringify(d));
-const savePassages = d => localStorage.setItem('raq_passages', JSON.stringify(d));
 
-const genId  = () => 'PC-' + new Date().toISOString().slice(0,10).replace(/-/g,'') + '-' + Math.random().toString(36).slice(2,6).toUpperCase();
-const fmtDate = iso => new Date(iso).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-const showToast = msg => { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); };
+// ================= SUPABASE =================
+const SUPABASE_URL = "https://wxmdpvuessuwgsgbtovw.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR...";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// ── QR Code pur JS (matrice → canvas) ────────────────────────────────────────
-// Micro-générateur QR (QR version 2, alphanumérique, ECC M) — auto-contenu, sans lib
-// Pour des IDs courts type "PC-20250618-ABCD" on utilise le mode alphanumérique QR V2
+// ================= NAV =================
+function showPage(p){
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
+  document.getElementById("btn-"+p).classList.add("active");
 
-// Table de correction Reed-Solomon GF(256) pour QR
-const GF_EXP = new Uint8Array(512);
-const GF_LOG = new Uint8Array(256);
-(function(){
-  let x=1;
-  for(let i=0;i<255;i++){GF_EXP[i]=x;GF_LOG[x]=i;x<<=1;if(x&256)x^=285;}
-  for(let i=255;i<512;i++) GF_EXP[i]=GF_EXP[i-255];
-})();
-const gfMul=(x,y)=>x&&y?GF_EXP[GF_LOG[x]+GF_LOG[y]]:0;
-const gfPoly=(gen,k)=>{let g=[1];for(let i=0;i<k;i++){const t=[1,GF_EXP[i]];const r=new Array(g.length+1).fill(0);for(let a=0;a<g.length;a++)for(let b=0;b<t.length;b++)r[a+b]^=gfMul(g[a],t[b]);g=r;}return g;};
-function rsEncode(data,nsym){
-  const gen=gfPoly(1,nsym);
-  const msg=[...data,...new Array(nsym).fill(0)];
-  for(let i=0;i<data.length;i++){const c=msg[i];if(c)for(let j=0;j<gen.length;j++)msg[i+j]^=gfMul(gen[j],c);}
-  return msg.slice(data.length);
+  if(p==="admin") renderAdminList();
+  if(p==="history") renderHistory();
 }
 
-// Encode texte alphanumérique QR
-const QR_ALPHA='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
-function encodeAlpha(s){
-  s=s.toUpperCase();
-  let bits=[];
-  const push=(v,n)=>{for(let i=n-1;i>=0;i--)bits.push((v>>i)&1);};
-  push(0b0010,4); // mode alphanumérique
-  push(s.length,9); // version 2 → 9 bits longueur
-  for(let i=0;i<s.length-1;i+=2) push(QR_ALPHA.indexOf(s[i])*45+QR_ALPHA.indexOf(s[i+1]),11);
-  if(s.length%2) push(QR_ALPHA.indexOf(s[s.length-1]),6);
-  push(0,4); // terminator
-  while(bits.length%8) bits.push(0);
-  const bytes=[];
-  for(let i=0;i<bits.length;i+=8){let b=0;for(let j=0;j<8;j++)b=(b<<1)|bits[i+j];bytes.push(b);}
-  // Pad
-  const cap=28; // data codewords QR V2-M
-  const pads=[0xEC,0x11];
-  while(bytes.length<cap) bytes.push(pads[(bytes.length-Math.ceil((bits.length-4)/8))%2]);
-  return bytes.slice(0,cap);
+// ================= UTILS =================
+const genId = () =>
+  'PC-' +
+  new Date().toISOString().slice(0,10).replace(/-/g,'') +
+  '-' +
+  Math.random().toString(36).slice(2,6).toUpperCase();
+
+const fmtDate = iso => new Date(iso).toLocaleString();
+
+// ================= DB =================
+async function getPoints(){
+  let { data } = await supabase.from("points").select("*");
+  let obj={}; (data||[]).forEach(p=>obj[p.id]=p);
+  return obj;
 }
 
-// Matrice QR version 2 (25×25)
-function buildQR(text){
-  const N=25;
-  const mat=Array.from({length:N},()=>new Array(N).fill(-1));
-  const res=Array.from({length:N},()=>new Array(N).fill(false));
+async function getPassages(){
+  let { data } = await supabase.from("passages").select("*");
+  return data || [];
+}
 
-  // Finder patterns
-  const finder=(r,c)=>{
-    for(let i=0;i<7;i++)for(let j=0;j<7;j++){
-      mat[r+i][c+j]=((i===0||i===6||j===0||j===6)||(i>=2&&i<=4&&j>=2&&j<=4))?1:0;
-      res[r+i][c+j]=true;
-    }
-    // separator
-    for(let k=-1;k<=7;k++){
-      if(r+k>=0&&r+k<N){if(c-1>=0){mat[r+k][c-1]=0;res[r+k][c-1]=true;}if(c+7<N){mat[r+k][c+7]=0;res[r+k][c+7]=true;}}
-      if(c+k>=0&&c+k<N){if(r-1>=0){mat[r-1][c+k]=0;res[r-1][c+k]=true;}if(r+7<N){mat[r+7][c+k]=0;res[r+7][c+k]=true;}}
-    }
+async function savePoint(p){
+  await supabase.from("points").insert([p]);
+}
+
+async function savePassage(p){
+  await supabase.from("passages").insert([p]);
+}
+
+// ================= QR =================
+function drawQR(text){
+  const c=document.getElementById("qrcanvas");
+  const ctx=c.getContext("2d");
+  c.width=200;c.height=200;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,200,200);
+  ctx.fillStyle="#000";
+  ctx.font="10px monospace";
+  ctx.fillText("Scanner:",10,20);
+  ctx.fillText(text.substring(0,25),10,60);
+  ctx.fillText(text.substring(25),10,80);
+}
+
+// ================= ADMIN =================
+async function createPoint(){
+  const p={
+    id:genId(),
+    name:document.getElementById("name").value,
+    site:document.getElementById("site").value,
+    floor:document.getElementById("floor").value,
+    items:document.getElementById("items").value,
+    created:new Date().toISOString()
   };
-  finder(0,0); finder(0,18); finder(18,0);
 
-  // Alignment pattern V2 : centre (18,18)
-  const align=(r,c)=>{
-    for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++){
-      mat[r+i][c+j]=(Math.abs(i)===2||Math.abs(j)===2||(!i&&!j))?1:0;
-      res[r+i][c+j]=true;
-    }
-  };
-  align(18,18);
+  await savePoint(p);
 
-  // Timing
-  for(let i=8;i<17;i++){mat[6][i]=(i%2===0)?1:0;res[6][i]=true;mat[i][6]=(i%2===0)?1:0;res[i][6]=true;}
+  const url = location.origin + location.pathname + "#point=" + p.id;
+  drawQR(url);
 
-  // Dark module
-  mat[4*2+9][8]=1; res[4*2+9][8]=true; // version 2 → row 17
+  renderAdminList();
+}
 
-  // Format info (ECC M, mask 0) : 101010000010010
-  const fmt=[1,0,1,0,1,0,0,0,0,0,1,0,0,1,0];
-  const fmtPos=[[8,0],[8,1],[8,2],[8,3],[8,4],[8,5],[8,7],[8,8],[7,8],[5,8],[4,8],[3,8],[2,8],[1,8],[0,8]];
-  fmtPos.forEach(([r,c],i)=>{mat[r][c]=fmt[i];res[r][c]=true;});
-  const fmtPos2=[[8,N-1],[8,N-2],[8,N-3],[8,N-4],[8,N-5],[8,N-6],[8,N-7],[N-8+1,8]];
-  [[N-1,8],[N-2,8],[N-3,8],[N-4,8],[N-5,8],[N-6,8],[N-7,8],[8,N-8]].forEach(([r,c],i)=>{mat[r][c]=fmt[fmt.length-1-i]??0;res[r][c]=true;});
+async function renderAdminList(){
+  const pts = await getPoints();
+  const el = document.getElementById("list");
 
-  // Data placement
-  const dataBytes=encodeAlpha(text);
-  const ecBytes=rsEncode(dataBytes,16);
-  const allBytes=[...dataBytes,...ecBytes];
-  let bits=[];
-  allBytes.forEach(b=>{for(let i=7;i>=0;i--)bits.push((b>>i)&1);});
+  el.innerHTML = Object.values(pts).map(p=>`
+    <div class="card">
+      <b>${p.name}</b><br>
+      ${p.site} ${p.floor}<br>
+      ${p.id}<br>
+      <button onclick="showQR('${p.id}')">QR</button>
+    </div>
+  `).join("");
+}
 
-  let bi=0,up=true;
-  for(let col=N-1;col>=0;col-=2){
-    if(col===6) col--;
-    for(let row=0;row<N;row++){
-      const r=up?N-1-row:row;
-      for(let dc=0;dc<=1;dc++){
-        const c=col-dc;
-        if(!res[r][c]){mat[r][c]=bi<bits.length?bits[bi++]:0;}
-      }
-    }
-    up=!up;
+function showQR(id){
+  const url = location.origin + location.pathname + "#point=" + id;
+  drawQR(url);
+}
+
+// ================= AGENT =================
+async function openPoint(id){
+  const pts = await getPoints();
+  const p = pts[id];
+  if(!p) return;
+
+  document.getElementById("agentView").innerHTML = `
+    <div class="card">
+      <h3>${p.name}</h3>
+      <p>${p.site} ${p.floor}</p>
+      <button onclick="submitPassage('${p.id}')">
+        Valider passage
+      </button>
+    </div>
+  `;
+
+  showPage("agent");
+}
+
+async function submitPassage(pointId){
+  await savePassage({
+    id:"PAS-"+Date.now(),
+    pointId,
+    ts:new Date().toISOString()
+  });
+
+  alert("✅ Passage enregistré");
+}
+
+// ================= HISTORIQUE =================
+async function renderHistory(){
+  const pss = await getPassages();
+  const el = document.getElementById("historyList");
+
+  el.innerHTML = pss.map(p=>`
+    <div class="card">
+      ${p.pointId}<br>
+      ${fmtDate(p.ts)}
+    </div>
+  `).join("");
+}
+
+// ================= HASH (QR) =================
+window.addEventListener("load", async ()=>{
+  const h = location.hash;
+
+  if(h.startsWith("#point=")){
+    const id = h.replace("#point=","");
+    await openPoint(id);
   }
 
-  // Mask 0 : (r+c)%2===0
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(!res[r][c])mat[r][c]^=((r+c)%2===0?1:0);
+  await renderAdminList();
+});
 
-  return mat;
-}
-
-function drawQRMatrix(mat, canvas, size=250){
-  const N=mat.length, mod=Math.floor(size/N), pad=Math.floor((size-mod*N)/2);
-  canvas.width=canvas.height=size;
-  const ctx=canvas.getContext('2d');
-  ctx.fillStyle='#fff'; ctx.fillRect(0,0,size,size);
-  ctx.fillStyle='#000';
-  for(let r=0;r<N;r++)for(let c=0;c<N;c++)if(mat[r][c]===1)ctx.fillRect(pad+c*mod,pad+r*mod,mod,mod);
-}
-
-let lastPoint=null, qrDataUrl=null;
-
-function showQRFor(p){
-  lastPoint=p;
-  document.getElementById('qr-point-name').textContent=p.name;
-  document.getElementById('qr-point-id').textContent=p.id;
-  const canvas=document.getElementById('qrcanvas');
-  try{
-    
-	const url = window.location.origin + window.location.pathname + "#point=" + p.id;
-	const mat = buildQR(url);
-
-    drawQRMatrix(mat,canvas,200);
-    qrDataUrl=canvas.toDataURL('image/png');
-  } catch(e){
-    // fallback : afficher l'ID en texte si l'ID est trop long pour V2
-    const ctx=canvas.getContext('2d');
-    canvas.width=canvas.height=200;
-    ctx.fillStyle='#fff';ctx.fillRect(0,0,200,200);
-    ctx.fillStyle='#333';ctx.font='bold 12px monospace';ctx.textAlign='center';
-    ctx.fillText('ID: '+p.id,100,100);
-    qrDataUrl=canvas.toDataURL('image/png');
-  }
-  document.getElementById('qrBlock').classList.add('visible');
-  document.getElementById('qrBlock').scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-
-function downloadQR(){
-  if(!qrDataUrl){showToast('⚠ Générez d\'abord un QR');return;}
-  const a=document.createElement('a');
-  a.download=`qr-${lastPoint?.id||'point'}.png`;
-  a.href=qrDataUrl;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-}
-
-function printQR(){
-  if(!qrDataUrl||!lastPoint){showToast('⚠ Générez d\'abord un QR');return;}
-  const w=window.open('','_blank');
-  if(!w){showToast('⚠ Autorisez les pop-ups pour imprimer');return;}
-  w.document.write(`<!DOCTYPE html><html><head><title>QR</title>
-    <style>body{text-align:center;font-family:sans-serif;padding:2rem}img{width:220px}</style>
-    </head><body>
-    <img src="${qrDataUrl}"><br><br>
-    <strong style="font-size:1.1rem">${lastPoint.name}</strong><br>
-    <span style="font-size:.75rem;color:#666">${[lastPoint.site,lastPoint.floor].filter(Boolean).join(' · ')}</span><br>
-    <code style="font-size:.65rem;color:#999">${lastPoint.id}</code>
-    <script>window.onload=()=>{window.print();}<\/script>
-    </body></html>`);
-  w.document.close();
-}
-
-// ── Nav ───────────────────────────────────────────────────────────────────────
-function switchPage(page){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('page-'+page).classList.add('active');
-  document.getElementById('btn-'+page).classList.add('active');
-  if(page==='agent') renderAgentList();
-  if(page==='history') renderHistory();
-  if(page==='admin') renderAdminList();
-}
-
-// ── Admin ─────────────────────────────────────────────────────────────────────
-function createPoint(){
-  const name=document.getElementById('a-name').value.trim();
-  if(!name){showToast('⚠ Nom requis');return;}
-  const p={id:genId(),name,site:document.getElementById('a-site').value.trim(),floor:document.getElementById('a-floor').value.trim(),items:document.getElementById('a-items').value.trim(),created:new Date().toISOString()};
-  const pts=getPoints();pts[p.id]=p;savePoints(pts);
-  ['a-name','a-site','a-floor','a-items'].forEach(i=>document.getElementById(i).value='');
-  showQRFor(p);renderAdminList();showToast('✓ Point créé');
-}
-
-function deletePoint(id){
-  if(!confirm('Supprimer ce point et tous ses passages ?')) return;
-  const pts=getPoints(); delete pts[id]; savePoints(pts);
-  const pss=getPassages().filter(p=>p.pointId!==id); savePassages(pss);
-  // Masquer le QR si c'était ce point
-  if(lastPoint?.id===id){document.getElementById('qrBlock').classList.remove('visible');lastPoint=null;qrDataUrl=null;}
-  renderAdminList();showToast('Point supprimé');
-}
-
-function renderAdminList(){
-  const pts=getPoints(),pss=getPassages();
-  const el=document.getElementById('adminPointList');
-  const list=Object.values(pts);
-  if(!list.length){el.innerHTML='<div class="history-empty">Aucun point créé.</div>';return;}
-  el.innerHTML=list.map(p=>{
-    const n=pss.filter(x=>x.pointId===p.id).length;
-    return `<div class="point-item">
-      <div class="point-dot">📍</div>
-      <div class="point-info">
-        <div class="name">${p.name}</div>
-        <div class="sub">${[p.site,p.floor].filter(Boolean).join(' · ')} · ${n} passage${n>1?'s':''}</div>
-      </div>
-      <div class="point-actions">
-        <button class="btn btn-secondary" style="font-size:.75rem;padding:.35rem .7rem" onclick='showQRFor(${JSON.stringify(p)})'>QR</button>
-        <button class="btn btn-danger" style="font-size:.75rem;padding:.35rem .7rem" onclick="deletePoint('${p.id}')">🗑</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── Agent ─────────────────────────────────────────────────────────────────────
-let currentPoint=null,agentPhotoData=null;
-
-function renderAgentList(){
-  const pts=getPoints(),el=document.getElementById('agentPointList');
-  const list=Object.values(pts);
-  if(!list.length){el.innerHTML='<div class="history-empty">Aucun point configuré.<br>Créez-en un dans Admin.</div>';return;}
-  el.innerHTML=list.map(p=>`
-    <div class="point-item" style="cursor:pointer" onclick="openPoint('${p.id}')">
-      <div class="point-dot">📍</div>
-      <div class="point-info"><div class="name">${p.name}</div><div class="sub">${[p.site,p.floor].filter(Boolean).join(' · ')}</div></div>
-      <span style="color:var(--muted);font-size:1.1rem">›</span>
-    </div>`).join('');
-}
-
-function openPoint(id){
-  const pts=getPoints(),pss=getPassages();
-  currentPoint=pts[id];if(!currentPoint)return;
-  document.getElementById('form-point-name').textContent=currentPoint.name;
-  document.getElementById('form-point-sub').textContent=[currentPoint.site,currentPoint.floor].filter(Boolean).join(' · ');
-  const last=pss.filter(p=>p.pointId===id).sort((a,b)=>b.ts>a.ts?1:-1)[0];
-  const banner=document.getElementById('lastPassageBanner');
-  if(last){banner.textContent=`Dernier passage : ${fmtDate(last.ts)} — ${last.agent}`;banner.classList.add('visible');}
-  else banner.classList.remove('visible');
-  const cl=document.getElementById('consoList');cl.innerHTML='';
-  if(currentPoint.items)currentPoint.items.split(',').map(s=>s.trim()).filter(Boolean).forEach(i=>addConsoLine(i));
-  else addConsoLine();
-  agentPhotoData=null;
-  document.getElementById('agentPhotoPreview').style.display='none';
-  document.getElementById('agentPhotoHint').style.display='block';
-  document.getElementById('agentPhotoZone').classList.remove('filled');
-  document.getElementById('agentPhotoInput').value='';
-  document.getElementById('agent-name').value='';
-  document.getElementById('agent-note').value='';
-  document.getElementById('agent-select-view').style.display='none';
-  document.getElementById('agent-form-view').style.display='block';
-  window.scrollTo(0,0);
-}
-
-function backToSelect(){
-  document.getElementById('agent-select-view').style.display='block';
-  document.getElementById('agent-form-view').style.display='none';
-  currentPoint=null;
-}
-
-function addConsoLine(val=''){
-  const row=document.createElement('div');row.className='conso-row';
-  row.innerHTML=`<input type="text" class="conso-item" placeholder="Article" value="${val}">
-    <input type="number" class="conso-qty" placeholder="Qté" min="0" value="1">
-    <button class="btn-icon" onclick="this.parentElement.remove()">×</button>`;
-  document.getElementById('consoList').appendChild(row);
-}
-
-function loadAgentPhoto(e){
-  const file=e.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=ev=>{agentPhotoData=ev.target.result;const img=document.getElementById('agentPhotoPreview');img.src=agentPhotoData;img.style.display='block';document.getElementById('agentPhotoHint').style.display='none';document.getElementById('agentPhotoZone').classList.add('filled');};
-  r.readAsDataURL(file);
-}
-
-function submitPassage(){
-  if(!currentPoint)return;
-  const agent=document.getElementById('agent-name').value.trim();
-  if(!agent){showToast('⚠ Votre nom est requis');return;}
-  const rows=document.querySelectorAll('#consoList .conso-row');
-  const items=[];
-  rows.forEach(r=>{const item=r.querySelector('.conso-item').value.trim(),qty=r.querySelector('.conso-qty').value;if(item)items.push({item,qty:qty||'1'});});
-  if(!items.length){showToast('⚠ Ajoutez au moins un article');return;}
-  const pss=getPassages();
-  pss.push({id:'PAS-'+Date.now(),pointId:currentPoint.id,pointName:currentPoint.name,agent,items,note:document.getElementById('agent-note').value.trim(),photo:agentPhotoData,ts:new Date().toISOString()});
-  savePassages(pss);showToast('✓ Réapprovisionnement enregistré');backToSelect();
-}
-
-// ── Deep link hash ────────────────────────────────────────────────────────────
-function checkHash(){
-  const h=window.location.hash;
-  if(!h.startsWith('#point='))return;
-  const id=h.slice(7),pts=getPoints();
-  if(pts[id]){switchPage('agent');openPoint(id);}
-}
-window.addEventListener('hashchange',checkHash);
-
-// ── Historique ────────────────────────────────────────────────────────────────
-function renderHistory(){
-  const pss=getPassages().sort((a,b)=>b.ts>a.ts?1:-1);
-  const pts=getPoints();
-  const sel=document.getElementById('filterPoint'),cur=sel.value;
-  sel.innerHTML='<option value="">Tous les points</option>';
-  Object.values(pts).forEach(p=>{const o=document.createElement('option');o.value=p.id;o.textContent=p.name;if(p.id===cur)o.selected=true;sel.appendChild(o);});
-  const filter=sel.value;
-  const filtered=filter?pss.filter(p=>p.pointId===filter):pss;
-  document.getElementById('histCount').textContent=filtered.length;
-  const list=document.getElementById('historyList');
-  if(!filtered.length){list.innerHTML='<div class="card"><div class="history-empty">Aucun passage enregistré.</div></div>';return;}
-  list.innerHTML=filtered.map(p=>`
-    <div class="passage-card" id="pc-${p.id}">
-      <div class="passage-head" onclick="document.getElementById('pc-${p.id}').classList.toggle('open')">
-        <div><div class="agent">${p.agent}</div><div style="font-size:.78rem;color:var(--muted);margin-top:.1rem">${p.pointName}</div></div>
-        <div style="display:flex;align-items:center;gap:.8rem"><span class="ts">${fmtDate(p.ts)}</span><span class="passage-chevron">▾</span></div>
-      </div>
-      <div class="passage-body">
-        <div class="items-delivered">${p.items.map(i=>`<span class="item-tag">${i.item} ×${i.qty}</span>`).join('')}</div>
-        ${p.note?`<div class="passage-note">"${p.note}"</div>`:''}
-        ${p.photo?`<img class="passage-photo" src="${p.photo}" alt="Photo">`:'<div style="font-size:.8rem;color:var(--muted)">Pas de photo</div>'}
-      </div>
-    </div>`).join('');
-}
-
-function clearHistory(){
-  if(!confirm('Supprimer tout l\'historique ?'))return;
-  savePassages([]);renderHistory();showToast('Historique effacé');
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-renderAdminList();
-checkHash();
 </script>
+
 </body>
 </html>
